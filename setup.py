@@ -7,5 +7,5 @@ setup(name='promo-codes-lambda',
       author='sm4',
       license='MIT',
       install_requires=[
-          'boto3', 'mock'
+          'boto3'
       ])

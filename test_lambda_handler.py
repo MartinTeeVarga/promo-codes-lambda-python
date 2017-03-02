@@ -20,6 +20,12 @@ class TestLambda_handler(unittest.TestCase):
         }, {})
         assert response['statusCode'] == '400'
 
+    # def test_lambda_handler_real(self):
+    #     response = lambda_handler.lambda_handler({
+    #         'game': 'test',
+    #         'code': 'PRV1'
+    #     }, {})
+
 
 if __name__ == '__main__':
     unittest.main()

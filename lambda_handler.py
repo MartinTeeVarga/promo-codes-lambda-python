@@ -36,6 +36,9 @@ def lambda_handler(event, context):
         return respond(ValueError('Error fetching code. ' + e.message))
     else:
         item = response['Item']
-        print("GetItem succeeded:")
-        print(json.dumps(item, indent=4))
+        if not item['pub']:
+            code_table.delete_item(Key={
+                'gameId': item['gameId'],
+                'codeId': item['codeId']
+            })
         return respond(None, item)
