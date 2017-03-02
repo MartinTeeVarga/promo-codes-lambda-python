@@ -1,9 +1,9 @@
 from __future__ import print_function
 
-import boto3
 import json
 
-print('Loading function')
+import boto3
+from botocore.exceptions import ClientError
 
 
 def respond(err, res=None):
@@ -17,28 +17,25 @@ def respond(err, res=None):
 
 
 def lambda_handler(event, context):
-    '''Demonstrates a simple HTTP endpoint using API Gateway. You have full
-    access to the request and response payload, including headers and
-    status code.
+    if not 'game' in event:
+        return respond(ValueError('Missing game parameter.'))
+    elif not 'code' in event:
+        return respond(ValueError('Missing code parameter.'))
 
-    To scan a DynamoDB table, make a GET request with the TableName as a
-    query string parameter. To put, update, or delete an item, make a POST,
-    PUT, or DELETE request respectively, passing in the payload to the
-    DynamoDB API as a JSON body.
-    '''
-    #print("Received event: " + json.dumps(event, indent=2))
+    code = event['code']
+    game = event['game']
 
-    operations = {
-        'DELETE': lambda dynamo, x: dynamo.delete_item(**x),
-        'GET': lambda dynamo, x: dynamo.scan(**x),
-        'POST': lambda dynamo, x: dynamo.put_item(**x),
-        'PUT': lambda dynamo, x: dynamo.update_item(**x),
-    }
+    code_table = boto3.resource('dynamodb').Table('Code')
 
-    operation = event['httpMethod']
-    if operation in operations:
-        payload = event['queryStringParameters'] if operation == 'GET' else json.loads(event['body'])
-        dynamo = boto3.resource('dynamodb').Table(payload['TableName'])
-        return respond(None, operations[operation](dynamo, payload))
+    try:
+        response = code_table.get_item(Key={
+            'gameId': game,
+            'codeId': code
+        })
+    except ClientError as e:
+        return respond(ValueError('Error fetching code. ' + e.message))
     else:
-        return respond(ValueError('Unsupported method "{}"'.format(operation)))
+        item = response['Item']
+        print("GetItem succeeded:")
+        print(json.dumps(item, indent=4))
+        return respond(None, item)
